@@ -2,7 +2,7 @@ module github.com/koomox/wireproxy
 
 go 1.20
 
-require github.com/koomox/wireguard-go v0.0.0-20230719110006-c3fe6d4319e9
+require github.com/koomox/wireguard-go v0.0.0-20230722132638-cc0f064e674d
 
 require (
 	github.com/google/btree v1.0.1
