@@ -3,6 +3,7 @@ package wire
 import (
 	"fmt"
 	"path/filepath"
+	"os"
 	"strings"
 )
 
@@ -61,13 +62,30 @@ func ParsePair(s string) (key, value string) {
 	return "", ""
 }
 
-func FromArgs(args ...interface{}) (values map[string]string) {
-	values = make(map[string]string)
-	for i := range args {
-		k, v := ParsePair(fmt.Sprintf("%v", args[i]))
-		values[k] = v
+func FromArgs(args ...string) string {
+	n := len(args)
+	trim := func(s string) string {
+		var ch []byte
+		for i := range s {
+			switch s[i] {
+			case '`', '"', ' ', '-':
+			default:
+				ch = append(ch, s[i])
+			}
+		}
+		return strings.ToLower(string(ch))
 	}
-	return
+	for i := 0; i < n; i++ {
+		if strings.HasPrefix(args[i], "-") {
+			switch trim(args[i]) {
+			case "c", "f", "config", "file":
+				if (i+1) != n {
+					return args[i+1]
+				}
+			}
+		}
+	}
+	return "wireproxy.conf"
 }
 
 func GetPath(pa string) string {
@@ -76,15 +94,4 @@ func GetPath(pa string) string {
 		return f
 	}
 	return strings.Replace(f, "\\", "/", -1)
-}
-
-func GetValue(args map[string]string, keys ...string) (value string, ok bool) {
-	for idx := range args {
-		for i := range keys {
-			if keys[i] == idx {
-				return args[idx], true
-			}
-		}
-	}
-	return
 }
