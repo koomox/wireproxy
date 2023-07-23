@@ -25,6 +25,10 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
+	if dev.Socks5Addr() == "" {
+		fmt.Println("not found Socks5 BindAddress")
+		return
+	}
 	fmt.Println("loading...")
 	fmt.Println(dev.IPCRequest())
 	for i := range dev.Endpoint {
@@ -35,7 +39,7 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
-	server, err := socks.NewServer("127.0.0.1:1080", context.Background(), logger.Std)
+	server, err := socks.NewServer(dev.Socks5Addr(), context.Background(), logger.Std)
 	if err != nil {
 		fmt.Println(err.Error())
 		return

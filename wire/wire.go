@@ -33,12 +33,13 @@ type PeerConfig struct {
 }
 
 type DeviceConfig struct {
-	SecretKey  string        `json:"PrivateKey"`
-	Endpoint   []netip.Addr  `json:"Address"`
-	Peers      []*PeerConfig `json:"Peers"`
-	DNS        []netip.Addr  `json:"DNS"`
-	MTU        int           `json:"MTU"`
-	ListenPort int           `json:"ListenPort"`
+	SecretKey   string        `json:"PrivateKey"`
+	Endpoint    []netip.Addr  `json:"Address"`
+	Peers       []*PeerConfig `json:"Peers"`
+	DNS         []netip.Addr  `json:"DNS"`
+	MTU         int           `json:"MTU"`
+	ListenPort  int           `json:"ListenPort"`
+	BindAddress string        `json:"BindAddress"`
 }
 
 type DeviceSetting struct {
@@ -231,17 +232,9 @@ func ParsePeers(metadata ...string) (peer *PeerConfig, err error) {
 	return peer, nil
 }
 
-func FromSocks(file string) (string, error) {
-	metadata, err := parseFileToMetadata("normal", file)
-	if err != nil {
-		return nil, err
-	}
-	data, ok := metadata["[Socks5]"]
-	if !ok {
-		return "", fmt.Errorf("not found Socks5")
-	}
-	for i := range data {
-		k, v := ParsePair(data[i])
+func ParseSocks(metadata ...string) (string, error) {
+	for i := range metadata {
+		k, v := ParsePair(metadata[i])
 		switch k {
 		case "BindAddress":
 			if v == "" {
@@ -308,6 +301,10 @@ func (d *DeviceConfig) IPCRequest() string {
 	}
 
 	return request.String()
+}
+
+func (d *DeviceConfig) Socks5Addr() string {
+	return d.BindAddress
 }
 
 func (d *DeviceConfig) DeviceAddr() []netip.Addr {
