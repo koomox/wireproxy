@@ -231,18 +231,26 @@ func ParsePeers(metadata ...string) (peer *PeerConfig, err error) {
 	return peer, nil
 }
 
-func ParseSocks(metadata ...string) (string, error) {
-	for i := range metadata {
-		k, v := ParsePair(metadata[i])
+func FromSocks(file string) (string, error) {
+	metadata, err := parseFileToMetadata("normal", file)
+	if err != nil {
+		return nil, err
+	}
+	data, ok := metadata["[Socks5]"]
+	if !ok {
+		return "", fmt.Errorf("not found Socks5")
+	}
+	for i := range data {
+		k, v := ParsePair(data[i])
 		switch k {
 		case "BindAddress":
 			if v == "" {
-				return "", fmt.Errorf("not found BindAddress")
+				return "", fmt.Errorf("not found Socks5 BindAddress")
 			}
 			return v, nil
 		}
 	}
-	return "", nil
+	return "", fmt.Errorf("not found Socks5 BindAddress")
 }
 
 func parseMetadata(metadata map[string][]string) (device *DeviceConfig, err error) {
