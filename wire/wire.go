@@ -246,12 +246,12 @@ func ParseSocks(metadata ...string) (string, error) {
 	return "", fmt.Errorf("not found Socks5 BindAddress")
 }
 
-func parseMetadata(metadata map[string][]string) (device *DeviceConfig, err error) {
+func parseMetadata(metadata map[string][]string) (d *DeviceConfig, err error) {
 	data, ok := metadata["[Interface]"]
 	if !ok {
 		return nil, fmt.Errorf("not found Interface")
 	}
-	device, err = ParseInterface(data...)
+	d, err = ParseInterface(data...)
 	if err != nil {
 		return nil, err
 	}
@@ -263,8 +263,17 @@ func parseMetadata(metadata map[string][]string) (device *DeviceConfig, err erro
 	if err != nil {
 		return nil, err
 	}
-	device.Peers = append(device.Peers, peer)
-	return device, nil
+	d.Peers = append(d.Peers, peer)
+	data, ok = metadata["[Socks5]"]
+	if !ok {
+		return nil, fmt.Errorf("not found Socks5")
+	}
+	addr, err := ParseSocks(data...)
+	if err != nil {
+		return nil, err
+	}
+	d.BindAddress = addr
+	return d, nil
 }
 
 func FromFile(file string) (*DeviceConfig, error) {
