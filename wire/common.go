@@ -93,3 +93,13 @@ func GetPath(pa string) string {
 	}
 	return strings.Replace(f, "\\", "/", -1)
 }
+
+func GetVersion(args ...string) bool {
+	for i := range args {
+		switch args[i] {
+		case "-v", "--v", "-version", "--version":
+			return true
+		}
+	}
+	return false
+}

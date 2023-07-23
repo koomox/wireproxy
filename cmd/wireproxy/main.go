@@ -16,7 +16,7 @@ import (
 const version = "1.0.0"
 
 func main() {
-	if GetVersion(os.Args...) {
+	if wire.GetVersion(os.Args...) {
 		fmt.Printf("wireproxy version: %s\n", version)
 		return
 	}
