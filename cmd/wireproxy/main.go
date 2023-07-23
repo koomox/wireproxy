@@ -12,6 +12,8 @@ import (
 	"github.com/koomox/wireproxy/wire"
 )
 
+const version = "1.0.0"
+
 func main() {
 	fmt.Println("loading...")
 	dev, err := wire.FromFile("D:\\config.conf")
