@@ -1,9 +1,7 @@
 package wire
 
 import (
-	"fmt"
 	"path/filepath"
-	"os"
 	"strings"
 )
 
