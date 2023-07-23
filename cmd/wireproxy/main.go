@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 
 	"github.com/koomox/wireproxy/logger"
 	"github.com/koomox/wireproxy/socks"
@@ -15,12 +16,16 @@ import (
 const version = "1.0.0"
 
 func main() {
-	fmt.Println("loading...")
-	dev, err := wire.FromFile("D:\\config.conf")
+	if GetVersion(os.Args...) {
+		fmt.Printf("wireproxy version: %s\n", version)
+		return
+	}
+	dev, err := wire.FromFile(wire.FromArgs(os.Args...))
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
+	fmt.Println("loading...")
 	fmt.Println(dev.IPCRequest())
 	for i := range dev.Endpoint {
 		fmt.Println(dev.Endpoint[i].String())
