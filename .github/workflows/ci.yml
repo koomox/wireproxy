@@ -54,11 +54,11 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@master
         with:
-          name: wireproxy${{ env.FILE_DATE }}
+          name: wireproxy_linux${{ env.FILE_DATE }}
           path: ${{ env.TARGET }}
 
   build_windows:
-    name: Build on windows-latest x64
+    name: Build on windows-latest
     runs-on: windows-latest
     steps:
       - name: Checkout
