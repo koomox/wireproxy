@@ -1,0 +1,131 @@
+#
+# This is free software, lisence use GPL.
+# 
+# Copyright (C) 2021 KOOMOX <koomoxs@gmail.com>
+# 
+# <https://github.com/koomox/wireproxy>
+#
+
+name: Build wireproxy
+
+on:
+  workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+  TimeZone: China Standard Time
+  TARGET: /workdir
+
+jobs:
+  build_linux:
+    name: Build on ubuntu-latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+          check-latest: true
+
+      - name: Initialization environment
+        run: |
+          sudo timedatectl set-timezone "$TZ"
+          sudo mkdir -p ${{ env.TARGET }}
+          sudo chown $USER:$GROUPS ${{ env.TARGET }}
+          GOPATH=$GITHUB_WORKSPACE
+          go mod tidy
+
+      - name: Compile
+        run: |
+          cd $GITHUB_WORKSPACE/cmd/wireproxy
+          GOOS=linux
+          GOARCH=amd64
+          sudo go build -ldflags "-s -w" -o ${{ env.TARGET }}/wireproxy-linux-amd64 main.go
+          GOARCH=arm64
+          sudo go build -ldflags "-s -w" -o ${{ env.TARGET }}/wireproxy-linux-arm64 main.go
+
+      - name: Prepare artifact
+        run: |
+          echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: wireproxy${{ env.FILE_DATE }}
+          path: ${{ env.TARGET }}
+
+  build_windows:
+    name: Build on windows-latest x64
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+          check-latest: true
+
+      - name: Initialization environment
+        run: |
+          mkdir target
+          go mod tidy
+
+      - name: Compile
+        run: |
+          $env:PATH+=";$(go env GOPATH)\bin"
+          $env:WORKDIR=$env:GITHUB_WORKSPACE
+          cd "$env:WORKDIR\cmd\wireproxy"
+          $env:GOOS="windows"
+          $env:GOARCH="amd64"
+          go build -ldflags "-s -w" -o "$env:WORKDIR\target\wireproxy-windows-amd64.exe" main.go
+          $env:GOARCH="386"
+          go build -ldflags "-s -w" -o "$env:WORKDIR\target\wireproxy-windows-x86.exe" main.go
+          Set-TimeZone -Id "$env:TimeZone"
+          $env:FILE_DATE=$(Get-Date -format "_yyyyMMddHHmm")
+          echo "FILE_DATE=$env:FILE_DATE" >> $env:GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: wireproxy_windows${{ env.FILE_DATE }}
+          path: target
+
+  build_macos:
+    name: Build on macos-latest
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+          check-latest: true
+
+      - name: Initialization environment
+        run: |
+          sudo mkdir -p target
+          GOPATH=$GITHUB_WORKSPACE
+          sudo go mod tidy
+
+      - name: Compile
+        run: |
+          cd $GITHUB_WORKSPACE/cmd/wireproxy
+          GOOS=darwin
+          GOARCH=amd64
+          sudo go build -ldflags "-s -w" -o $GITHUB_WORKSPACE/target/wireproxy-darwin-amd64 main.go
+          GOARCH=arm64
+          sudo go build -ldflags "-s -w" -o $GITHUB_WORKSPACE/target/wireproxy-darwin-arm64 main.go
+          echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: wireproxy_darwin${{ env.FILE_DATE }}
+          path: target
