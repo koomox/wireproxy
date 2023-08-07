@@ -6,6 +6,8 @@ import (
 	"io"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/koomox/wireproxy/logger"
 	"github.com/koomox/wireproxy/socks"
@@ -14,6 +16,10 @@ import (
 )
 
 const version = "1.0.0"
+
+var (
+	cmdQ = make(chan string)
+)
 
 func main() {
 	if wire.GetVersion(os.Args...) {
@@ -29,6 +35,22 @@ func main() {
 		fmt.Println("not found Socks5 BindAddress")
 		return
 	}
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
+	go func(ch chan string) {
+		for {
+			select {
+			case sig := <-sigChan:
+				switch sig {
+				case os.Interrupt, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
+					ch <- "exit"
+				default:
+				}
+			}
+		}
+	}(cmdQ)
+
 	fmt.Println("loading...")
 	fmt.Println(dev.IPCRequest())
 	for i := range dev.Endpoint {
@@ -80,5 +102,15 @@ func main() {
 			}(inbound)
 		}
 	}(context.Background(), tun, server)
-	select {}
+
+	for {
+		select {
+		case msg := <-cmdQ:
+			switch msg {
+			case "quit", "exit":
+				os.Exit(0)
+			default:
+			}
+		}
+	}
 }
