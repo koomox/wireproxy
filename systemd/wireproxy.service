@@ -10,8 +10,7 @@ After=network-online.target
 Type=simple
 Restart=on-failure
 RestartSec=30s
-ExecStartPre=/usr/bin/wireproxy -n -c /etc/wireproxy.conf
-ExecStart=/usr/bin/wireproxy -c /etc/wireproxy.conf
+ExecStart=/usr/bin/wireproxy -c /etc/wireproxy.conf 2>/dev/null
 SyslogIdentifier=wireproxy
 
 [Install]
